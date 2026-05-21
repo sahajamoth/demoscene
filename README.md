@@ -1,13 +1,14 @@
-# Demoscene Tiny Intro
+# Demoscene Intros
 
-A minimal browser demoscene repo built around a 1k-style WebGL intro.
+A minimal browser demoscene repo with procedural tiny intros.
 
 ## Run
 
-Open `index.html` in a browser, or open `tiny.html` directly for the byte-sized version.
+Open `index.html` in a browser for the current featured intro.
 
 ## Files
 
+- `tree4k.html` - 4k Tree of Absolute intro inspired by `dreamsbook/главы/глава_3б_нити.md`.
 - `tiny.html` - self-contained WebGL2 intro.
 - `index.html` - lightweight launcher with a full-window frame.
 - `Makefile` - byte count and local static-server helpers.
@@ -18,4 +19,4 @@ Open `index.html` in a browser, or open `tiny.html` directly for the byte-sized 
 make size
 ```
 
-The point is to keep `tiny.html` small, procedural, and asset-free.
+The point is to keep the intros small, procedural, and asset-free.
