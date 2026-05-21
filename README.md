@@ -8,7 +8,7 @@ Open `index.html` in a browser for the current featured intro.
 
 ## Files
 
-- `tree4k.html` - 5-minute 4k Tree of Absolute intro inspired by `dreamsbook/главы/глава_3б_нити.md`.
+- `tree4k.html` - 1-minute 4k Tree of Absolute intro inspired by `dreamsbook/главы/глава_3б_нити.md`.
 - `tiny.html` - self-contained WebGL2 intro.
 - `index.html` - lightweight launcher with a full-window frame.
 - `Makefile` - byte count and local static-server helpers.
