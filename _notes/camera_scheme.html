@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang=ru>
+<meta charset=utf-8>
+<title>Физическая схема подвеса тросов и камеры</title>
+<style>
+html,body{margin:0;height:100%;background:#05070d;color:#dce7ff;font:14px/1.35 system-ui,Arial,sans-serif;overflow:hidden}
+canvas{display:block;width:100vw;height:100vh}
+</style>
+<canvas id=c></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d'),S=Math.sin,C=Math.cos,PI=Math.PI;
+function size(){c.width=innerWidth*(devicePixelRatio||1);c.height=innerHeight*(devicePixelRatio||1);c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';x.setTransform(devicePixelRatio||1,0,0,devicePixelRatio||1,0,0);draw()}
+addEventListener('resize',size);
+const floorY=0,A={x:0,y:210,z:0},O={x:0,y:0,z:0};
+function P(p){
+  let X=p.x*.78-p.z*.55,Y=p.y+p.z*.22;
+  return {x:innerWidth*.54+X*.55,y:innerHeight*.68-Y*.55};
+}
+function path(ps,style,w=1,dash=[]){
+  x.save();x.strokeStyle=style;x.lineWidth=w;x.setLineDash(dash);x.beginPath();
+  ps.forEach((p,i)=>{p=P(p);i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y)});
+  x.stroke();x.restore();
+}
+function dot(p,r,color){
+  p=P(p);x.fillStyle=color;x.beginPath();x.arc(p.x,p.y,r,0,7);x.fill();
+}
+function label(t,p,dx=0,dy=0,color='#dce7ff'){
+  p=P(p);x.fillStyle=color;x.font='13px system-ui,Arial';x.fillText(t,p.x+dx,p.y+dy);
+}
+function arrow(a,b,color,w=3){
+  let A=P(a),B=P(b),ang=Math.atan2(B.y-A.y,B.x-A.x);
+  x.strokeStyle=color;x.fillStyle=color;x.lineWidth=w;x.beginPath();x.moveTo(A.x,A.y);x.lineTo(B.x,B.y);x.stroke();
+  x.beginPath();x.moveTo(B.x,B.y);x.lineTo(B.x-14*C(ang-.45),B.y-14*S(ang-.45));x.lineTo(B.x-14*C(ang+.45),B.y-14*S(ang+.45));x.closePath();x.fill();
+}
+function box(x0,y0,w,h){
+  x.fillStyle='rgba(5,7,13,.74)';x.strokeStyle='rgba(150,180,230,.32)';x.lineWidth=1;x.fillRect(x0,y0,w,h);x.strokeRect(x0,y0,w,h);
+}
+function ropePoint(a,q,off=0){
+  let R=980,r0=230,dx=C(a),dz=S(a),side={x:-dz,z:dx};
+  if(q<.72){
+    let r=R-(R-r0)*q/.72;
+    return {x:-r*dx+side.x*off,y:floorY,z:-r*dz+side.z*off};
+  }
+  let s=(q-.72)/.28,r=r0*(1-s),lift=A.y*s*s;
+  return {x:-r*dx+side.x*off*(1-s),y:lift,z:-r*dz+side.z*off*(1-s)};
+}
+function rope(a,color,w=1,off=0,alpha=1){
+  let ps=[];
+  for(let j=0;j<=100;j++)ps.push(ropePoint(a,j/100,off));
+  path(ps,color.replace('ALPHA',alpha),w);
+}
+function draw(){
+  x.clearRect(0,0,innerWidth,innerHeight);
+  x.fillStyle='#03050b';x.fillRect(0,0,innerWidth,innerHeight);
+  for(let i=0;i<240;i++){x.fillStyle=`rgba(170,200,255,${.035+.045*S(i)})`;x.fillRect((S(i*78.23)+1)*innerWidth/2,(S(i*31.91)+1)*innerHeight/2,1.2,1.2)}
+
+  // floor plane
+  x.fillStyle='rgba(20,30,45,.18)';
+  let p1=P({x:-1050,y:0,z:-650}),p2=P({x:860,y:0,z:-650}),p3=P({x:1050,y:0,z:560}),p4=P({x:-1050,y:0,z:560});
+  x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);x.closePath();x.fill();
+  for(let z=-600;z<=520;z+=140)path([{x:-1050,y:0,z},{x:1050,y:0,z}],`rgba(90,120,160,.13)`,1);
+  for(let xx=-1000;xx<=1000;xx+=160)path([{x:xx,y:0,z:-650},{x:xx,y:0,z:560}],`rgba(90,120,160,.1)`,1);
+
+  // before lift: all ropes lie on floor and radiate from one point
+  for(let k=-14;k<=14;k+=2){
+    let a=k*.08,ps=[];
+    for(let j=0;j<=40;j++){
+      let q=j/40,r=900*q;
+      ps.push({x:-r*C(a),y:0,z:-r*S(a)});
+    }
+    path(ps,'rgba(120,150,190,.14)',1,[5,7]);
+  }
+
+  // lifted physical state: far parts remain horizontal on floor, only near center rises to anchor
+  for(let k=-24;k<=24;k++){
+    let a=k*.045;
+    rope(a,`hsla(${185+k*4},95%,62%,ALPHA)`,1.15,0,.25);
+  }
+  for(let k=-9;k<=9;k+=3){
+    rope(k*.045,'rgba(255,255,255,ALPHA)',2.4,k,.48);
+  }
+
+  // highlighted rope: bundle of many threads, lying on floor far away, pulled up only near suspension
+  for(let i=0;i<150;i++){
+    rope(.18,`hsla(${205+i*.8},90%,${46+i%8*5}%,ALPHA)`,.7,(i/149-.5)*28,.18);
+  }
+  rope(.18,'rgba(255,255,170,ALPHA)',2.6,-17,.95);
+
+  // lift axis and anchor
+  path([O,A],'rgba(255,245,160,.5)',2,[6,7]);
+  arrow(O,A,'rgba(255,245,160,.75)',2);
+  let pa=P(A),g=x.createRadialGradient(pa.x,pa.y,2,pa.x,pa.y,66);
+  g.addColorStop(0,'rgba(255,255,210,.98)');g.addColorStop(1,'rgba(255,255,210,0)');
+  x.fillStyle=g;x.beginPath();x.arc(pa.x,pa.y,66,0,7);x.fill();dot(A,9,'#fffbd2');dot(O,5,'#ffd86d');
+
+  // camera: starts left, on floor; moves toward Absolute on floor, then up
+  let cam0={x:-820,y:0,z:280},cam1={x:-420,y:0,z:145},cam2={x:-310,y:55,z:100};
+  arrow(cam0,cam1,'#ffdd66',4);
+  arrow(cam1,cam2,'#ff9d66',4);
+  path([cam2,A],'rgba(255,180,100,.42)',1.5,[6,6]);
+  dot(cam0,6,'#ffdd66');dot(cam1,6,'#ffdd66');dot(cam2,7,'#ff9d66');
+
+  label('точка была на полу',O,12,18,'#ffd86d');
+  label('подвес поднят на 100 000 км',A,14,-14,'#fffbd2');
+  label('дальняя часть троса лежит на полу: строго горизонтально',ropePoint(.18,.28,-17),-260,22,'#9ec8ff');
+  label('только ближний участок тянется вверх к подвесу',ropePoint(.18,.83,-17),14,-8,'#ffdca0');
+  label('нить / human-size: камера стартует слева на уровне пола',cam0,-20,-18,'#ffdd66');
+  label('движение по полу к Абсолюту',cam1,-130,22,'#ffdd66');
+  label('потом вверх, но не до подвеса',cam2,12,6,'#ff9d66');
+  label('трос = 1 000 канатов, каждый с тем же физическим подвесом',ropePoint(-.45,.58),-270,-22,'#a6ffd6');
+
+  box(24,24,390,148);
+  x.fillStyle='#dce7ff';x.font='600 15px system-ui,Arial';x.fillText('Физика сцены',42,52);
+  x.font='13px system-ui,Arial';
+  [
+    'полная длина каната: 1 000 000 км',
+    'подвес: 100 000 км над точкой на полу',
+    'далеко от подвеса канаты не поднимаются',
+    'дальняя часть лежит горизонтально на полу',
+    'подъём только рядом с единой точкой',
+    'камера: слева на полу → к Абсолюту → вверх'
+  ].forEach((t,i)=>x.fillText(t,42,78+i*18));
+
+  box(innerWidth-306,24,272,92);
+  x.fillStyle='#dce7ff';x.font='600 15px system-ui,Arial';x.fillText('Иерархия объектов',innerWidth-286,52);
+  x.font='13px system-ui,Arial';
+  ['нить','канат = 1 000 000 нитей','трос = 1 000 канатов'].forEach((t,i)=>x.fillText(t,innerWidth-286,78+i*18));
+}
+size();
+</script>
+</html>
